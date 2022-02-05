@@ -24,36 +24,8 @@ namespace LagrangeTheoremForNumbers
             Console.Read();
         }
 
-        //
-        static List<int> LagrangeFactor(int value)
-        {
-            int initialThreshold = (int)Math.Sqrt(value);
-            List<int> result = Factor(value, initialThreshold);
-            while (result.Count > 4)
-            {
-                initialThreshold--;
-                result = Factor(value, initialThreshold);
-            }
-            return result;
-        }
-
-        //factorize uising threshold
-        static List<int> Factor(int value, int initialThreshold)
-        {
-            List<int> result = new List<int>();
-            List<int> values = GetValues(value);
-            values.Sort((a, b) => a >= b ? -1 : 1);
-            while (value > 0)
-            {
-                int appropriate = FindNextAppropriate(value, values, initialThreshold);
-                result.Add(appropriate);
-                value -= appropriate * appropriate;
-            }
-            return result;
-        }
-
         //calculating all passible numbers
-        static List<int> GetValues(int input)
+        static List<int> GetPossibleValues(int input)
         {
             List<int> result = new List<int>();
             for (int i = 0; i < input; i++)
@@ -66,12 +38,46 @@ namespace LagrangeTheoremForNumbers
             return result;
         }
 
+        //
+        static List<int> LagrangeFactor(int value)
+        {
+            List<int> possibleValues = GetPossibleValues(value);
+            possibleValues.Sort((a, b) => a >= b ? -1 : 1);
+
+            int initialThreshold = (int)Math.Sqrt(value);
+            List<int> result = Factor(value, possibleValues.Where(v=>v <= initialThreshold));
+            while (result.Count > 4)
+            {
+                initialThreshold--;
+                result = Factor(value, possibleValues.Where(v => v <= initialThreshold));
+            }
+
+            while(result.Count < 4)
+            {
+                result.Add(0);
+            }
+            return result;
+        }
+
+        //factorize uising threshold
+        static List<int> Factor(int value, IEnumerable<int> possibleValues)
+        {
+            List<int> result = new List<int>();
+            while (value > 0)
+            {
+                int appropriate = FindNextAppropriate(value, possibleValues);
+                result.Add(appropriate);
+                value -= appropriate * appropriate;
+            }
+            return result;
+        }
+
         //getting the next number which is less than threshold
-        static int FindNextAppropriate(int value, IEnumerable<int> input, int threshhold)
+        static int FindNextAppropriate(int value, IEnumerable<int> input)
         {
             foreach (int i in input)
             {
-                if (i <= threshhold && (i * i <= value))
+                if (i * i <= value)
                 {
                     return i;
                 }
